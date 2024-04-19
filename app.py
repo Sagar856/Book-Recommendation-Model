@@ -7,7 +7,6 @@ books = pickle.load(open('webfiles/books.pkl', 'rb'))
 book_names = pickle.load(open('webfiles/book_names.pkl', 'rb'))
 book_pivot = pickle.load(open('webfiles/pt.pkl', 'rb'))
 final_rating = pickle.load(open('webfiles/final_ratings.pkl', 'rb'))
-modelknn = pickle.load(open('webfiles/modelknn.pkl', 'rb'))
 similarity_scores = pickle.load(open('webfiles/similarity_scores.pkl', 'rb'))
 
 
