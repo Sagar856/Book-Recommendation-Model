@@ -2,7 +2,7 @@ import pickle
 import streamlit as st
 import numpy as np 
 
-st.header("Book Recommendation System")
+st.header("Book Recommendation System Using ML ")
 books = pickle.load(open('webfiles/books.pkl', 'rb'))
 book_names = pickle.load(open('webfiles/book_names.pkl', 'rb'))
 book_pivot = pickle.load(open('webfiles/pt.pkl', 'rb'))
@@ -11,55 +11,58 @@ similarity_scores = pickle.load(open('webfiles/similarity_scores.pkl', 'rb'))
 
 
 # ****************** For Content based recommendation ***************************
-def fetch_poster(suggestion):
-    poster_url = []
-
-    for i in suggestion:
-        book_id = i[0]
-        url = books.iloc[book_id]['Image-URL-M']
-        poster_url.append(url)
-
-    return poster_url
 
 def recommend_book(book_name, books):
-    books_list = []
     book_id = np.where(book_pivot.index == book_name)[0][0]
     suggestion = sorted(list(enumerate(similarity_scores[book_id])), key = lambda x:x[1], reverse = True)[1:6]
-
-    poster_url = fetch_poster(suggestion)
     
+    data = []
     for i in suggestion:
-        book_id = i[0]
-        rec_books = books.iloc[book_id]['Book-Title']
-        books_list.append(rec_books)
-    return books_list , poster_url       
+        item = []
+        temp_df = books[books['Book-Title'] == book_pivot.index[i[0]]]
+        item.extend(list(temp_df.drop_duplicates('Book-Title')['Book-Title'].values))
+        item.extend(list(temp_df.drop_duplicates('Book-Title')['Book-Author'].values))
+        item.extend(list(temp_df.drop_duplicates('Book-Title')['Year-Of-Publication'].values.astype(str)))
+        item.extend(list(temp_df.drop_duplicates('Book-Title')['Image-URL-M'].values))
 
+        data.append(item)   
+    return data   
 
 
 selected_books = st.selectbox(
-    "select a book from the dropdown for CONTENT based recommendation",
-    book_names
+    "Select a book from the dropdown for recommendation",
+    book_pivot.index, placeholder="Choose an option",index=None,
 )
 
 
 if st.button('Show Recommendation'):
-    recommended_books,poster_url = recommend_book(selected_books, books)
+    data = recommend_book(selected_books, books)
     col1, col2, col3, col4, col5 = st.columns(5)   
     with col1:
-        st.text(recommended_books[0])
-        st.image(poster_url[0])
+        st.text(data[0][0])
+        st.image(data[0][3], width=125)
+        st.text('Author:' + '\n' + data[0][1] + '.')
+        st.text('Published year:' + '\n' + data[0][2])
     with col2:
-        st.text(recommended_books[1])
-        st.image(poster_url[1])
+        st.text(data[1][0])
+        st.image(data[1][3], width=125)
+        st.text('Author:' + '\n' + data[1][1] + '.')
+        st.text('Published year:' + '\n' + data[1][2])
     with col3:
-        st.text(recommended_books[2])
-        st.image(poster_url[2])
+        st.text(data[2][0])
+        st.image(data[2][3], width=125)
+        st.text('Author:' + '\n' + data[2][1] + '.')
+        st.text('Published year:' + '\n' + data[2][2])
     with col4:
-        st.text(recommended_books[3])
-        st.image(poster_url[3])
+        st.text(data[3][0])
+        st.image(data[3][3], width=125)
+        st.text('Author:' + '\n' + data[3][1] + '.')
+        st.text('Published year:' + '\n' + data[3][2])
     with col5:
-        st.text(recommended_books[4])
-        st.image(poster_url[4])
+        st.text(data[4][0])
+        st.image(data[4][3], width=125)
+        st.text('Author:' + '\n' + data[4][1] + '.')
+        st.text('Published year:' + '\n' + data[4][2])
 
 
 # # ************************ For User based recommendation ********************
