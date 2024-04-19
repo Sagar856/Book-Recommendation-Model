@@ -1,7 +1,6 @@
 import pickle
 import streamlit as st
 import numpy as np 
-from sklearn.neighbors import NearestNeighbors
 
 st.header("Book Recommendation System")
 books = pickle.load(open('webfiles/books.pkl', 'rb'))
@@ -10,6 +9,7 @@ book_pivot = pickle.load(open('webfiles/pt.pkl', 'rb'))
 final_rating = pickle.load(open('webfiles/final_ratings.pkl', 'rb'))
 modelknn = pickle.load(open('webfiles/modelknn.pkl', 'rb'))
 similarity_scores = pickle.load(open('webfiles/similarity_scores.pkl', 'rb'))
+
 
 # ****************** For Content based recommendation ***************************
 def fetch_poster(suggestion):
