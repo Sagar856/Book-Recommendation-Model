@@ -1,5 +1,4 @@
 streamlit
 numpy
 scikit-learn
-csr-matrix
-sparse
+scipy
