@@ -1,17 +1,20 @@
 import pickle
 import streamlit as st
 import numpy as np 
+from sklearn.neighbors import NearestNeighbors
+from scipy.sparse import csr_matrix
 
-st.header("Book Recommendation System Using ML ")
+st.title("Book Recommendation System")
 books = pickle.load(open('webfiles/books.pkl', 'rb'))
-book_names = pickle.load(open('webfiles/book_names.pkl', 'rb'))
 book_pivot = pickle.load(open('webfiles/pt.pkl', 'rb'))
 final_rating = pickle.load(open('webfiles/final_ratings.pkl', 'rb'))
+users = pickle.load(open('webfiles/users.pkl', 'rb'))
 similarity_scores = pickle.load(open('webfiles/similarity_scores.pkl', 'rb'))
 
 
 # ****************** For Content based recommendation ***************************
 
+st.subheader('Content Based Recommender')
 def recommend_book(book_name, books):
     book_id = np.where(book_pivot.index == book_name)[0][0]
     suggestion = sorted(list(enumerate(similarity_scores[book_id])), key = lambda x:x[1], reverse = True)[1:6]
@@ -30,7 +33,7 @@ def recommend_book(book_name, books):
 
 
 selected_books = st.selectbox(
-    "Select a book from the dropdown for recommendation",
+    "Select a book from the dropdown for CONTENT BASED recommendation",
     book_pivot.index, placeholder="Choose an option",index=None,
 )
 
@@ -65,53 +68,69 @@ if st.button('Show Recommendation'):
         st.text('Published year:' + '\n' + data[4][2])
 
 
+st.divider()
+
+
 # # ************************ For User based recommendation ********************
         
-# selected_user = st.selectbox(
-#     "select a book from the dropdown for USER based recommendation",
-#     final_rating.index
-# )
+st.subheader('User Based Recommender')
+selected_user = st.selectbox(
+    "select a User ID from the dropdown for USER BASED recommendation",
+    users.index
+)
 
-# def fetch_poster(suggestion):
-#     poster_url = []
+def recommendUsingKNN(user_id):
+  modelknn = NearestNeighbors(algorithm='brute')
+  book_sparse = csr_matrix(book_pivot)
+  modelknn.fit(book_sparse)
+  distances, suggestions = modelknn.kneighbors(book_pivot.iloc[user_id, :].values.reshape(1, -1))
 
-#     for i in suggestion:
-#         book_id = i[0]
-#         url = books.iloc[book_id]['Image-URL-M']
-#         poster_url.append(url)
+  for i in range(len(suggestions)):
+    item = book_pivot.index[suggestions[i]]
 
-#     return poster_url
+  recommendation = []
+  for j in range(len(item)):
+    temp_df1 = final_rating[final_rating['Book-Title'] == item[j]].head()
+    recommendation.extend(list(temp_df1.drop_duplicates('Book-Title')['Book-Title'].values))
+    recommendation.extend(list(temp_df1.drop_duplicates('Book-Title')['Book-Author'].values))
+    recommendation.extend(list(temp_df1.drop_duplicates('Book-Title')['Year-Of-Publication'].values.astype(int)))
+    recommendation.extend(list(temp_df1.drop_duplicates('Book-Title')['Image-URL-M'].values))
+  return recommendation    
 
-# def recommend_book(user_id, book_pivot):
-#     books_list = []
-#     # book_id = np.where(book_pivot.index == book_id)[0][0]
-#     # suggestion = sorted(list(enumerate(similarity_scores[book_id])), key = lambda x:x[1], reverse = True)[1:6]
-#     # modelknn = NearestNeighbors(algorithm='brute')
-#     distance, suggestion = modelknn.kneighbors(book_pivot.iloc[user_id,:].values.reshape(1,-1), n_neighbors=6 )
+if st.button('Show User Recommendation'):
+    recommended_books = recommendUsingKNN(selected_user)
+    col1, col2, col3, col4, col5 = st.columns(5)   
+    with col1:
+        st.text(recommended_books[0])
+        st.image(recommended_books[3])
+        st.text('Author:' + '\n' + recommended_books[1] + '.')
+        st.text('Published year:')
+        st.text(recommended_books[2])
+    with col2:
+        st.text(recommended_books[4])
+        st.image(recommended_books[7])
+        st.text('Author:' + '\n' + recommended_books[5] + '.')
+        st.text('Published year:')
+        st.text(recommended_books[6])
+    with col3:
+        st.text(recommended_books[8])
+        st.image(recommended_books[11])
+        st.text('Author:' + '\n' + recommended_books[9] + '.')
+        st.text('Published year:')
+        st.text(recommended_books[10])
+    with col4:
+        st.text(recommended_books[12])
+        st.image(recommended_books[15])
+        st.text('Author:' + '\n' + recommended_books[13] + '.')
+        st.text('Published year:')
+        st.text(recommended_books[14])
+    with col5:
+        st.text(recommended_books[16])
+        st.image(recommended_books[19])
+        st.text('Author:' + '\n' + recommended_books[17] + '.')
+        st.text('Published year:')
+        st.text(recommended_books[18])
 
-#     print(suggestion)
-#     poster_url = fetch_poster(suggestion)
-    
-#     for i in range(len(suggestion)):
-#         rec_books = book_pivot.index[suggestion[i]]
-#         books_list.append(rec_books)
-#     return books_list , poster_url       
 
-# if st.button('Show User Recommendation'):
-#     recommended_books,poster_url = recommend_book(selected_user, book_pivot)
-#     col1, col2, col3, col4, col5 = st.columns(5)   
-#     with col1:
-#         st.text(recommended_books[0])
-#         st.image(poster_url[0])
-#     with col2:
-#         st.text(recommended_books[1])
-#         st.image(poster_url[1])
-#     with col3:
-#         st.text(recommended_books[2])
-#         st.image(poster_url[2])
-#     with col4:
-#         st.text(recommended_books[3])
-#         st.image(poster_url[3])
-#     with col5:
-#         st.text(recommended_books[4])
-#         st.image(poster_url[4])
+st.divider()
+st.page_link("https://github.com/Sagar856/Book-Recommendation-Model.git",label = 'Click here -- Github source code')
